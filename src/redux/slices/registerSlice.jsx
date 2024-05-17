@@ -1,31 +1,27 @@
-// registerSlice.jsx
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { createAsyncThunk, createReducer } from "@reduxjs/toolkit";
 import axios from "axios";
-
-const initialState = {
-  login: "",
-  password: "",
-  repeatPassword: "",
-  error: null,
-  registerStatus: "idle", // idle, pending, succeeded, failed
-};
 
 export const registerUser = createAsyncThunk(
   "register/registerUser",
-  async ({ login, password }, { rejectWithValue }) => {
+  async (params) => {
     try {
-      const response = await axios.post("/api/register", { login, password });
+      const response = await axios.post("/api/register", params);
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response.data.message);
+      return rejectWithValue(error.message);
     }
   }
 );
 
-const registerSlice = createSlice({
-  name: "register",
-  initialState,
-  reducers: {
+const registerReducer = createReducer(
+  {
+    login: "",
+    password: "",
+    repeatPassword: "",
+    error: null,
+    registerStatus: "idle",
+  },
+  {
     updateLogin: (state, action) => {
       state.login = action.payload;
     },
@@ -35,25 +31,16 @@ const registerSlice = createSlice({
     updateRepeatPassword: (state, action) => {
       state.repeatPassword = action.payload;
     },
+    setError: (state, action) => {
+      state.error = action.payload;
+    },
     clearError: (state) => {
       state.error = null;
     },
-  },
-  extraReducers: (builder) => {
-    builder
-      .addCase(registerUser.pending, (state) => {
-        state.registerStatus = "pending";
-      })
-      .addCase(registerUser.fulfilled, (state) => {
-        state.registerStatus = "succeeded";
-      })
-      .addCase(registerUser.rejected, (state, action) => {
-        state.registerStatus = "failed";
-        state.error = action.payload;
-      });
-  },
-});
+    registerStatus: (state, action) => {
+      state.registerStatus = action.payload;
+    },
+  }
+);
 
-export const { updateLogin, updatePassword, updateRepeatPassword, clearError } =
-  registerSlice.actions;
-export default registerSlice.reducer;
+export default registerReducer;

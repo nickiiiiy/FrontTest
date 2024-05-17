@@ -11,10 +11,9 @@ import {
 } from "./registerSlice";
 
 const Registration = () => {
+  const dispatch = useDispatch();
   const { login, password, repeatPassword, error, registerStatus } =
     useSelector((state) => state.register);
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
 
   const handleLoginChange = (event) => {
     dispatch(updateLogin(event.target.value));
@@ -28,21 +27,20 @@ const Registration = () => {
     dispatch(updateRepeatPassword(event.target.value));
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
     if (password !== repeatPassword) {
-      dispatch(clearError());
-      dispatch(registerUser({ login, password }));
-    } else {
-      dispatch(registerUser({ login, password }));
+      dispatch(setError("Passwords do not match"));
+      return;
+    }
+    dispatch(clearError());
+    try {
+      await dispatch(registerUser({ login, password }));
+      // Redirect to main page
+    } catch (error) {
+      dispatch(setError(error.message));
     }
   };
-
-  useEffect(() => {
-    if (registerStatus === "succeeded") {
-      navigate("/"); // Перенаправление на главную страницу после успешной регистрации
-    }
-  }, [registerStatus, navigate]);
 
   return (
     <div>
